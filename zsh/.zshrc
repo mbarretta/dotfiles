@@ -3,8 +3,10 @@ setopt PROMPT_SUBST
 _git_prompt() {
   local branch=$(git branch --show-current 2>/dev/null)
   [[ -z "$branch" ]] && return
-  git diff --quiet 2>/dev/null && git diff --quiet --cached 2>/dev/null || branch="${branch}*"
-  git status --porcelain 2>/dev/null | grep -q '^??' && branch="${branch}?"
+  local status_chars=""
+  git diff --quiet 2>/dev/null && git diff --quiet --cached 2>/dev/null || status_chars="${status_chars}*"
+  git status --porcelain 2>/dev/null | grep -q '^??' && status_chars="${status_chars}?"
+  [[ -n "$status_chars" ]] && branch="${branch} [${status_chars}]"
   echo " %F{blue}::%f %F{yellow}${branch}%f"
 }
 
