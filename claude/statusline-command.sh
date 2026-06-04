@@ -17,14 +17,18 @@ fi
 
 printf '\033[1;36m%s\033[0m\033[0;34m@\033[0m\033[1;36m%s\033[0m :: \033[0;32m%s\033[0m' "$(whoami)" "$(hostname -s)" "$cwd"
 
-[ -n "$git_branch" ] && printf ' \033[0;34m[\033[0m\033[0;33m%s%s\033[0m\033[0;34m]\033[0m' "$git_branch" "$git_dirty"
+if [ -n "$git_branch" ]; then
+  printf ' \033[0;34m[\033[0m\033[0;33m%s\033[0m' "$git_branch"
+  [ -n "$git_dirty" ] && printf '\033[0;31m%s\033[0m' "$git_dirty"
+  printf '\033[0;34m]\033[0m'
+fi
 
-meta=""
-[ -n "$model" ] && meta="$model"
-[ -n "$effort" ] && meta="$meta  effort:$effort"
-[ -n "$cost" ] && meta="$meta  \$$(printf '%.2f' "$cost")"
-
-[ -n "$meta" ] && printf ' \033[0;34m::\033[0m \033[0;36m%s\033[0m' "$meta"
+if [ -n "$model" ]; then
+  printf ' :: \033[0;36m%s\033[0m' "$model"
+  [ -n "$effort" ] && printf ' · \033[0;37m%s\033[0m' "$effort"
+  [ -n "$cost" ] && printf ' · \033[0;35m$%s\033[0m' "$(printf '%.2f' "$cost")"
+  printf ' ::'
+fi
 
 if [ -n "$used" ]; then
   filled=$(printf '%.0f' "$(echo "$used * 10 / 100" | bc -l)")
@@ -41,11 +45,27 @@ if [ -n "$used" ]; then
   elif [ "$int_used" -ge 50 ]; then
     bar_color='\033[0;33m'
   else
-    bar_color='\033[0;34m'
+    bar_color='\033[0;32m'
   fi
-  printf "  \033[0;34mctx:\033[0m${bar_color}%s\033[0m" "$bar"
+  printf " \033[0;34mctx:\033[0m${bar_color}%s\033[0m" "$bar"
 fi
 
 if [ -n "$rate5" ] || [ -n "$rate7" ]; then
-  printf ' \033[0;34m:: rate limits —\033[0m \033[0;35m5hr:%.0f%%  7d:%.0f%%\033[0m' "$rate5" "$rate7"
+  rate_color() {
+    pct=$(printf '%.0f' "$1")
+    if [ "$pct" -ge 80 ]; then printf '\033[0;31m'
+    elif [ "$pct" -ge 50 ]; then printf '\033[0;33m'
+    else printf '\033[0;32m'
+    fi
+  }
+  printf ' :: '
+  if [ -n "$rate5" ]; then
+    printf '%s5hr:%.0f%%\033[0m' "$(rate_color "$rate5")" "$rate5"
+  fi
+  if [ -n "$rate5" ] && [ -n "$rate7" ]; then
+    printf ' · '
+  fi
+  if [ -n "$rate7" ]; then
+    printf '%s7d:%.0f%%\033[0m' "$(rate_color "$rate7")" "$rate7"
+  fi
 fi
