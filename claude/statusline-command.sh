@@ -4,6 +4,7 @@ cwd=$(echo "$input" | jq -r '.workspace.current_dir // .cwd')
 model=$(echo "$input" | jq -r '.model.display_name // empty')
 effort=$(echo "$input" | jq -r '.effort.level // empty')
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
+total_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // empty')
 cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
 rate5=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
 rate7=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
@@ -58,6 +59,10 @@ if [ -n "$used" ]; then
     bar_color='\033[0;32m'
   fi
   printf " \033[38;5;240mctx:\033[0m${bar_color}%s\033[0m" "$bar"
+  if [ -n "$total_tokens" ]; then
+    tokens_k=$(printf '%.0f' "$(echo "$total_tokens / 1000" | bc -l)")
+    printf ' \033[38;5;240m%sk\033[0m' "$tokens_k"
+  fi
 fi
 
 # rate limits
