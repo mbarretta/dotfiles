@@ -31,11 +31,28 @@ For each `src -> dst` pair, determine its state:
 For each drifted file:
 
 1. Show `diff -u src dst` (repo vs live).
-2. If the changes are trivial or clearly one-sided, summarize them in one line each and ask the user per-file: **adopt live version**, **keep repo version**, or **merge selectively** (walk hunks only when they ask).
-3. Apply the chosen result to the repo copy (`src`).
-4. Re-link: `ln -sf src dst` so future edits flow through the symlink again. For anything under `~/.claude/`, warn the user that a running Claude Code session may rewrite `settings.json` and detach it again.
+2. Classify each difference as **shareable** (useful on any machine: aliases, prompt tweaks, general settings) or **machine-specific** (absolute paths under `$HOME`, hostnames, credentials, tool inits for locally-installed tools like pyenv/cargo, work-vs-personal config). When unsure, ask.
+3. Shareable changes: ask the user per-file — **adopt live version**, **keep repo version**, or **merge selectively** (walk hunks only when they ask) — and apply the result to the repo copy (`src`).
+4. Machine-specific changes: never merge them into the repo. Route them to the file's local companion (see below), creating it if needed.
+5. Re-link: `ln -sf src dst` so future edits flow through the symlink again. For anything under `~/.claude/`, warn the user that a running Claude Code session may rewrite `settings.json` and detach it again.
 
 Never overwrite the live file with the repo copy without showing the diff and getting confirmation — the live version usually has the newer intent.
+
+### Grafted files
+
+A DETACHED file may be a **graft**: a pre-existing personal config with a block of repo content pasted in (look for marker comments like "from dotfiles repo", or a contiguous region that matches the repo copy). Don't hunk-merge these. Instead: the matching block is already in the repo (diff it for stragglers), everything else is machine-specific and moves to the local companion, then install the symlink. The grafted file itself should end up deleted (backed up first).
+
+### Local companions (machine-specific overrides)
+
+Machine-specific content lives in an unmanaged, never-committed companion file that the repo copy includes:
+
+| Managed file | Companion | Include mechanism |
+|---|---|---|
+| `zsh/.zshrc` | `~/.zshrc.local` | `[ -f ~/.zshrc.local ] && source ~/.zshrc.local` (last line of repo `.zshrc`) |
+| `ghostty/config.ghostty` | `config.local.ghostty` alongside the live config | `config-file = ?config.local.ghostty` (`?` = optional) |
+| `claude/settings.json` | `~/.claude/settings.local.json` | Built into Claude Code — no include line needed |
+
+If a repo file is missing its include line when you need to route content there, add it (and commit that with the sync).
 
 ## 4. Commit
 
