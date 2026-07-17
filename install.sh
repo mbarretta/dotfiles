@@ -23,4 +23,7 @@ link "$DOTFILES/claude/statusline-command.sh" "$HOME/.claude/statusline-command.
 link "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
 link "$DOTFILES/claude/skills/git-commit/SKILL.md" "$HOME/.claude/skills/git-commit/SKILL.md"
 
+echo "==> ghostty"
+link "$DOTFILES/ghostty/config.ghostty" "$HOME/Library/Application Support/com.mitchellh.ghostty/config.ghostty"
+
 echo "Done."

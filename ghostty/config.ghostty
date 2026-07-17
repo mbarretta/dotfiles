@@ -1,0 +1,12 @@
+theme = Solarized Dark Higher Contrast
+# theme = Cobalt2
+copy-on-select = clipboard
+font-size = 14
+
+# always default to ~/ vs current working directory in other tabs/windows
+window-inherit-working-directory = false
+tab-inherit-working-directory = false
+
+# cmd + arrow to move between tabs
+keybind = super+arrow_right=next_tab
+keybind = super+arrow_left=previous_tab
