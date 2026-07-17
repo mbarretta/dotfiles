@@ -19,6 +19,3 @@ export PROMPT='
 export PATH="$HOME/.local/bin:$PATH"
 
 alias ll="ls -al"
-
-test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
