@@ -19,3 +19,5 @@ export PROMPT='
 export PATH="$HOME/.local/bin:$PATH"
 
 alias ll="ls -al"
+
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
