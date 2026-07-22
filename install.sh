@@ -19,6 +19,7 @@ echo "==> zsh"
 link "$DOTFILES/zsh/.zshrc" "$HOME/.zshrc"
 
 echo "==> claude"
+link "$DOTFILES/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 link "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
 link "$DOTFILES/claude/skills/git-commit/SKILL.md" "$HOME/.claude/skills/git-commit/SKILL.md"
