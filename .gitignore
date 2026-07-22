@@ -1,3 +1,6 @@
 .DS_Store
 *.bak
 .superpowers/
+# machine-local companions never belong in the repo
+*.local.*
+.zshrc.local

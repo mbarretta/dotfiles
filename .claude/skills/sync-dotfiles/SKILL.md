@@ -48,8 +48,9 @@ Machine-specific content lives in an unmanaged, never-committed companion file t
 
 | Managed file | Companion | Include mechanism |
 |---|---|---|
-| `zsh/.zshrc` | `~/.zshrc.local` | `[ -f ~/.zshrc.local ] && source ~/.zshrc.local` (last line of repo `.zshrc`) |
-| `ghostty/config.ghostty` | `config.local.ghostty` alongside the live config | `config-file = ?config.local.ghostty` (`?` = optional) |
+| `zsh/.zshrc` | `~/.zshrc.local` | `[ -f ~/.zshrc.local ] && source ~/.zshrc.local` (first line of repo `.zshrc` — local loads first so the shared prompt/aliases win) |
+| `claude/CLAUDE.md` | `~/.claude/CLAUDE.local.md` | `@~/.claude/CLAUDE.local.md` import (end of repo `CLAUDE.md`) |
+| `ghostty/config.ghostty` | `~/.config/ghostty/config.local.ghostty` (alongside the live symlink) | `config-file = ?config.local.ghostty` (`?` = optional; loads after the shared file so local wins) |
 | `claude/settings.json` | `~/.claude/settings.local.json` | Built into Claude Code — no include line needed |
 
 If a repo file is missing its include line when you need to route content there, add it (and commit that with the sync).

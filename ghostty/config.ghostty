@@ -10,3 +10,7 @@ tab-inherit-working-directory = false
 # cmd + arrow to move between tabs
 keybind = super+arrow_right=next_tab
 keybind = super+arrow_left=previous_tab
+
+# machine-local overrides — resolved next to the live symlink, loads after this
+# file so local values win; ? makes it optional (never committed)
+config-file = ?config.local.ghostty

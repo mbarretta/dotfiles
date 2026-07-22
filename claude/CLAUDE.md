@@ -65,4 +65,8 @@
 - Follow conventional commit format when appropriate (feat:, fix:, refactor:, etc.)
 
 ## Planning Documents
-- **IMPORTANT**: When saving planning documents (plans, specs, architecture docs, etc.), and you're in `/Users/barretta/workspace` or a child directory, **ALWAYS** use `.claude/plans/` — create it if it doesn't exist. This keeps project-specific plans co-located with the project rather than mixed into global context.
+- **IMPORTANT**: When saving planning documents (plans, specs, architecture docs, etc.), and you're in `~/workspace` or a child directory, **ALWAYS** use `.claude/plans/` — create it if it doesn't exist. This keeps project-specific plans co-located with the project rather than mixed into global context.
+
+# Machine-Local Additions
+
+@~/.claude/CLAUDE.local.md

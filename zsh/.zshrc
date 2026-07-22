@@ -1,3 +1,7 @@
+# Machine-specific env, secrets, and tool inits live in ~/.zshrc.local (never committed).
+# Sourced first so the shared prompt/aliases below win over anything it sets (e.g. oh-my-zsh themes).
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
 setopt PROMPT_SUBST
 
 _git_prompt() {
@@ -19,5 +23,3 @@ export PROMPT='
 export PATH="$HOME/.local/bin:$PATH"
 
 alias ll="ls -al"
-
-[ -f ~/.zshrc.local ] && source ~/.zshrc.local

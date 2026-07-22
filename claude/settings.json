@@ -1,48 +1,13 @@
 {
+  "model": "fable",
+  "effortLevel": "high",
+  "alwaysThinkingEnabled": true,
+  "theme": "dark-daltonized",
+  "plansDirectory": ".claude/plans",
+  "skipWorkflowUsageWarning": true,
+  "skipAutoPermissionPrompt": true,
   "statusLine": {
     "type": "command",
-    "command": "sh /Users/barretta/.claude/statusline-command.sh"
-  },
-  "enabledPlugins": {
-    "chainguard-codegen@chainguard-plugins": true,
-    "chainguard-docs@chainguard-plugins": true,
-    "frontend-design@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": false,
-    "context7@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "github@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
-    "claude-code-setup@claude-plugins-official": true,
-    "chrome-devtools-mcp@claude-plugins-official": true,
-    "mab-harness@mab-agent-skills": true,
-    "mab-life-goals@mab-agent-skills": true,
-    "mab-se-rfp@mab-agent-skills": true,
-    "vercel@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "chainguard-plugins": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/chainguard-demo/claude-plugins.git"
-      }
-    },
-    "mab-agent-skills": {
-      "source": {
-        "source": "github",
-        "repo": "mbarretta/mab-agent-skills"
-      }
-    }
-  },
-  "effortLevel": "medium",
-  "tui": "fullscreen",
-  "theme": "dark-daltonized",
-  "editorMode": "normal",
-  "enableWorkflows": true
+    "command": "sh ~/.claude/statusline-command.sh"
+  }
 }
