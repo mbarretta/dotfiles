@@ -44,6 +44,14 @@ The repo holds only the **shared baseline** — the parts worth having on any ma
 
 Rule of thumb: if it wouldn't be true or useful on a fresh machine — a credential, a `/Users/...` path, pyenv/cargo init, a work plugin — it goes in the companion. The `/sync-dotfiles` skill routes drift accordingly. If a future dotfile's format has no include mechanism, fall back to generating the live file from shared + local at install time (nothing needs this today).
 
+One key needs more than a companion. Because `~/.claude/settings.json` is a **symlink into this
+repo**, Claude Code's own writes land in the working tree — and it re-adds `enabledPlugins` on every
+plugin enable/disable. A fresh clone must not inherit this machine's plugin set, so `.gitattributes`
+puts that file behind a `clean` filter (`jq -S 'del(.enabledPlugins)'`) which strips the key at stage
+time. The key keeps working locally and never reaches a commit; `jq -S` also absorbs Claude Code's
+key reordering. Git never takes filter definitions from a clone, so `install.sh` sets it on each
+machine — and warns if `jq` is missing, because the filter then silently degrades.
+
 ## Profiles
 
 One repo serves several differently-purposed machines. Components are **opt-in**, not opt-out, so

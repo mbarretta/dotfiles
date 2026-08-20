@@ -1,25 +1,16 @@
 {
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
   "env": {
     "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "5"
   },
-  "model": "opus[1m]",
-  "effortLevel": "xhigh",
-  "alwaysThinkingEnabled": true,
-  "theme": "dark-daltonized",
-  "plansDirectory": ".claude/plans",
-  "skipWorkflowUsageWarning": true,
-  "skipAutoPermissionPrompt": true,
-  "statusLine": {
-    "type": "command",
-    "command": "sh ~/.claude/statusline-command.sh"
-  },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
+      "autoUpdate": true,
       "source": {
-        "source": "github",
-        "repo": "anthropics/skills"
-      },
-      "autoUpdate": true
+        "repo": "anthropics/skills",
+        "source": "github"
+      }
     },
     "elastic-agent-skills": {
       "source": {
@@ -28,18 +19,27 @@
       }
     },
     "mab-agent-skills": {
+      "autoUpdate": true,
       "source": {
-        "source": "github",
-        "repo": "mbarretta/mab-agent-skills"
-      },
-      "autoUpdate": true
+        "repo": "mbarretta/mab-agent-skills",
+        "source": "github"
+      }
     },
     "obsidian-skills": {
+      "autoUpdate": true,
       "source": {
-        "source": "github",
-        "repo": "kepano/obsidian-skills"
-      },
-      "autoUpdate": true
+        "repo": "kepano/obsidian-skills",
+        "source": "github"
+      }
     }
-  }
+  },
+  "model": "opus[1m]",
+  "plansDirectory": ".claude/plans",
+  "skipAutoPermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "statusLine": {
+    "command": "sh ~/.claude/statusline-command.sh",
+    "type": "command"
+  },
+  "theme": "dark-daltonized"
 }

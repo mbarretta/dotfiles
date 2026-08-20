@@ -191,12 +191,37 @@ do_ghostty() {
   companion "$TARGET_HOME/.config/ghostty/config.local.ghostty"
 }
 
+# Because ~/.claude/settings.json is a symlink into this repo, Claude Code's own
+# writes land in the working tree. It re-adds `enabledPlugins` on every plugin
+# enable/disable — machine-local state that must not be committed, or a fresh
+# clone inherits this machine's plugin set. .gitattributes marks the file; the
+# clean filter itself lives in .git/config, which git deliberately never takes
+# from a clone, so every machine has to set it here.
+install_settings_filter() {
+  [ "$DRY_RUN" = 0 ] && [ "$PRINT_MAP" = 0 ] || return 0
+  [ -d "$DOTFILES/.git" ] || return 0
+  if ! command -v jq >/dev/null 2>&1; then
+    warn "jq missing — settings.json clean filter inactive; enabledPlugins will leak into commits"
+    return 0
+  fi
+  local want="jq -S 'del(.enabledPlugins)'"
+  if [ "$(git -C "$DOTFILES" config --get filter.claude-settings.clean 2>/dev/null)" = "$want" ]; then
+    say "  ok settings.json clean filter"
+  elif git -C "$DOTFILES" config filter.claude-settings.clean "$want" 2>/dev/null; then
+    say "  set settings.json clean filter"
+  else
+    warn "could not set the settings.json clean filter; enabledPlugins will leak into commits"
+  fi
+  return 0
+}
+
 do_claude_core() {
   say "==> claude core"
   if [ "$DRY_RUN" = 0 ] && [ "$PRINT_MAP" = 0 ] && pgrep -qf 'claude' 2>/dev/null; then
     warn "a claude process is running; it may rewrite settings.json through the symlink"
     warn "and undo what this run installs. Close it, or re-check settings.json afterward."
   fi
+  install_settings_filter
   link "$DOTFILES/claude/CLAUDE.md"            "$TARGET_HOME/.claude/CLAUDE.md"
   link "$DOTFILES/claude/statusline-command.sh" "$TARGET_HOME/.claude/statusline-command.sh"
   link "$DOTFILES/claude/settings.json"        "$TARGET_HOME/.claude/settings.json"

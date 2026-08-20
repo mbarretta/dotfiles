@@ -1,0 +1,8 @@
+# `~/.claude/settings.json` is a symlink to claude/settings.json, so Claude Code
+# writes straight through into this repo. It re-adds `enabledPlugins` on every
+# plugin enable/disable — machine-local state that must never be committed, or a
+# fresh clone inherits this machine's plugin set. The clean filter strips it at
+# stage time, so the key can live in the working file while staying out of every
+# commit, and `git status` stays quiet. `jq -S` also absorbs Claude Code's key
+# reordering. install.sh configures the filter; git will not do it from a clone.
+claude/settings.json filter=claude-settings

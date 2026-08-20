@@ -25,7 +25,7 @@ Note the map covers file mappings only. Plugins (`plugins-*.txt`) and prerequisi
 
 For each `src -> dst` pair, determine its state:
 
-- **LINKED**: `dst` is a symlink resolving to `src` (compare with `readlink` against the repo's real path). Live edits flow straight into the repo, so any drift shows up as an unstaged change in `git status` — nothing to merge, skip to step 4.
+- **LINKED**: `dst` is a symlink resolving to `src` (compare with `readlink` against the repo's real path). Live edits flow straight into the repo, so any drift shows up as an unstaged change in `git status` — nothing to merge, skip to step 4. Use `git diff` to confirm, not `git status` alone: after an external write, `git status` reports a phantom `M` from its stale stat cache until git actually compares content, which matters for the filtered `settings.json` (see below).
 - **STALE LINK**: `dst` is a symlink but points somewhere else (e.g. another clone of this repo). Diff its target against `src`; treat differences like DETACHED below, and offer to re-point the link here.
 - **DETACHED**: `dst` exists but is a regular file (a tool rewrote it in place, breaking the link). This is the main drift case.
 - **MISSING**: `dst` doesn't exist. Offer to run `./install.sh` (or just the one `ln -sf`).
@@ -58,6 +58,17 @@ Machine-specific content lives in an unmanaged, never-committed companion file t
 | `claude/settings.json` | `~/.claude/settings.local.json` | Built into Claude Code — no include line needed |
 
 If a repo file is missing its include line when you need to route content there, add it (and commit that with the sync).
+
+### `enabledPlugins` is filtered, not merged
+
+`claude/settings.json` has a `clean` filter (`.gitattributes` + `filter.claude-settings.clean` in `.git/config`, set by `install.sh`) that runs `jq -S 'del(.enabledPlugins)'` at stage time. Claude Code re-adds `enabledPlugins` to the live file on every plugin enable/disable, and because the live file is a symlink into this repo those writes land here. The filter keeps the key working locally while never letting it reach a commit — a fresh clone must not inherit this machine's plugin set. `plugins-*.txt` is the source of truth for what gets installed.
+
+Consequences when syncing:
+
+- Do **not** treat a live `enabledPlugins` as drift to merge or delete. Leave it alone.
+- Plugin enablement belongs in `~/.claude/settings.local.json`, where most of it already lives. If a plugin needs enabling on this machine only, put it there.
+- `jq -S` also normalizes key order, so Claude Code reshuffling the file produces no diff.
+- If `jq` is missing the filter silently degrades and the key *will* be committed — `install.sh` warns about this.
 
 ## 4. Commit
 
