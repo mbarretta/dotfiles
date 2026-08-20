@@ -1,6 +1,9 @@
 {
-  "model": "fable",
-  "effortLevel": "high",
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "5"
+  },
+  "model": "opus[1m]",
+  "effortLevel": "xhigh",
   "alwaysThinkingEnabled": true,
   "theme": "dark-daltonized",
   "plansDirectory": ".claude/plans",
