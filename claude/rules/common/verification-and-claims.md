@@ -22,3 +22,13 @@
   state it as a claim about what the user wanted and flag it as a draft for correction. A rule
   reverse-engineered from shipped code describes that code instead of governing the next change —
   and the two framings agree on everything already written while disagreeing about what comes next.
+
+- **A test cannot catch what its fixture assumes.** A green suite over a broken system usually means
+  every fixture encodes the same wrong assumption the code does. When a classifier keys off message
+  text, pin the fixture to a string captured from a *running* system, not one written next to the
+  code. And drive the real adapter — not a fake — in at least one test per classification path, or
+  the seam that does the classifying is never exercised.
+
+- **Don't declare visual or behavioral parity from a screenshot.** Diff the actual computed values
+  (`getComputedStyle`, serialized state, byte comparison) element by element. Downscaled images hide
+  exactly the differences that matter.
