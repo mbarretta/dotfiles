@@ -63,6 +63,7 @@
 - **IMPORTANT**: Commit messages MUST be one sentence only - no multi-line descriptions or bullet points in the message body
 - **IMPORTANT**: NEVER add Claude attribution, "Generated with Claude Code", or "Co-Authored-By: Claude" to commits
 - Follow conventional commit format when appropriate (feat:, fix:, refactor:, etc.)
+- PR bodies follow the same rules: 2-4 sentences covering what changed, why, and the verification gate — no attribution footer, no section headers unless genuinely needed
 
 ## Planning Documents
 - **IMPORTANT**: When saving planning documents (plans, specs, architecture docs, etc.), and you're in `~/workspace` or a child directory, **ALWAYS** use `.claude/plans/` — create it if it doesn't exist. This keeps project-specific plans co-located with the project rather than mixed into global context.
