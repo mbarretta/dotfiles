@@ -243,14 +243,8 @@ do_claude_commands() {
 # Skills are distributed as plugins (see claude-plugins) or come from upstream
 # installers. Nothing is vendored here, so this is mostly a prerequisite check.
 do_claude_skills() {
-  say "==> claude skills"
-  # TEMPORARY: git-commit moves into the mab-personal plugin (workstream 1).
-  # Keep the link until that ships so the skill never disappears mid-migration.
-  if [ -f "$DOTFILES/claude/skills/git-commit/SKILL.md" ]; then
-    link "$DOTFILES/claude/skills/git-commit/SKILL.md" \
-         "$TARGET_HOME/.claude/skills/git-commit/SKILL.md"
-  fi
   [ "$PRINT_MAP" = 1 ] && return 0
+  say "==> claude skills"
   need_bin gws "brew install gws — provides the 25 gws-*/recipe-* skills"
   [ -d "$TARGET_HOME/.agents/skills/web-design-guidelines" ] || \
     warn "vercel-labs skills absent — npx skills add vercel-labs/agent-skills -g"

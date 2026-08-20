@@ -61,7 +61,7 @@ If a repo file is missing its include line when you need to route content there,
 
 ## 4. Commit
 
-After merging, if `git status` shows changes, offer to commit using the git-commit skill (one-sentence conventional commit, no attribution).
+After merging, if `git status` shows changes, offer to commit using the `mab-personal:git-commit` skill (one-sentence conventional commit, no attribution).
 
 ## Notes
 

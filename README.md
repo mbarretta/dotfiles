@@ -17,9 +17,7 @@ dotfiles/
 │   │   └── personal/                #   personal environment only
 │   ├── commands/                    # Custom slash commands
 │   ├── plugins-common.txt           # Plugins installed everywhere
-│   ├── plugins-personal.txt         # Plugins for the personal profile only
-│   └── skills/
-│       └── git-commit/SKILL.md      # Moving to the mab-personal plugin; link is temporary
+│   └── plugins-personal.txt         # Plugins for the personal profile only
 ├── ghostty/
 │   └── config.ghostty               # Ghostty terminal config
 └── install.sh                       # Symlinks everything into place, creates local companions
