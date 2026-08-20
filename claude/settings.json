@@ -12,5 +12,34 @@
   "statusLine": {
     "type": "command",
     "command": "sh ~/.claude/statusline-command.sh"
+  },
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      },
+      "autoUpdate": true
+    },
+    "elastic-agent-skills": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/elastic/agent-skills.git"
+      }
+    },
+    "mab-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "mbarretta/mab-agent-skills"
+      },
+      "autoUpdate": true
+    },
+    "obsidian-skills": {
+      "source": {
+        "source": "github",
+        "repo": "kepano/obsidian-skills"
+      },
+      "autoUpdate": true
+    }
   }
 }

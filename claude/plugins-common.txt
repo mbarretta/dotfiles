@@ -1,0 +1,13 @@
+# Portable plugins — installed in every environment.
+# One "plugin@marketplace" per line. Marketplaces must be registered via
+# extraKnownMarketplaces in settings.json, or the install reports "unknown marketplace".
+claude-api@anthropic-agent-skills
+code-simplifier@claude-plugins-official
+document-skills@anthropic-agent-skills
+elastic-kibana@elastic-agent-skills
+elastic-security@elastic-agent-skills
+frontend-design@claude-plugins-official
+mab-harness@mab-agent-skills
+playwright@claude-plugins-official
+security-guidance@claude-plugins-official
+slack@claude-plugins-official

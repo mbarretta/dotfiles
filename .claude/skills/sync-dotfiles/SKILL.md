@@ -9,13 +9,17 @@ Compare the live copy of every managed file against this repo and merge local ch
 
 ## 1. Build the file map
 
-`install.sh` is the single source of truth. Extract every `link "src" "dst"` pair from it — do NOT hardcode the list here, it will go stale:
+`install.sh` is the single source of truth. Ask it for the resolved map — do NOT hardcode the list here, and do NOT grep the script, both go stale:
 
 ```bash
-grep -E '^link ' install.sh
+./install.sh --print-map
 ```
 
-Expand `$DOTFILES` to this repo's root and `$HOME` to the user's home when resolving paths.
+Each line is `src<TAB>dst`, already absolute — no `$DOTFILES` or `$HOME` expansion needed, and it honours `--home`.
+
+This replaced `grep -E '^link ' install.sh`, which only ever matched calls at column zero. Once components moved into shell functions (`do_zsh`, `do_claude_rules`, …) every `link` call became indented and that grep matched **nothing**; it also never saw the `companion` lines. `--print-map` is produced by the same code path that performs the linking, so it cannot drift from what install actually does.
+
+Note the map covers file mappings only. Plugins (`plugins-*.txt`) and prerequisite checks are not paths and are deliberately absent — check those with `claude plugin list`.
 
 ## 2. Classify each destination
 
