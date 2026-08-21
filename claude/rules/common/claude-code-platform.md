@@ -12,3 +12,13 @@ That clone lags `origin/main` until a `/plugin` update re-fetches and re-caches 
 
 Code that runs from a workspace checkout directly — scripts invoked by path, CLIs on `$PATH` — has no
 such lag and is live as soon as it is saved. Don't assume one propagation model for both.
+
+**`/context` lists only eagerly-loaded instructions.** Its Memory-files table covers what loaded at
+session start. Nested `CLAUDE.md` files and `paths:`-scoped rules load lazily on a matching file read
+and never appear there, so absence is not evidence they failed to load. Probe with a fresh headless
+run instead — and always pair it with a no-read control, or a hallucinated YES reads as proof:
+
+```bash
+claude -p 'Read ./x.py. Answer YES or NO: is <distinctive phrase from the rule> in your context?' \
+  --max-turns 4 --model haiku
+```
