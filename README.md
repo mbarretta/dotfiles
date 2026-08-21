@@ -16,8 +16,7 @@ dotfiles/
 │   │   ├── common/                  #   every environment
 │   │   └── personal/                #   personal environment only
 │   ├── commands/                    # Custom slash commands
-│   ├── plugins-common.txt           # Plugins installed everywhere
-│   └── plugins-personal.txt         # Plugins for the personal profile only
+│   └── plugins-common.txt           # Plugins installed everywhere (add plugins-<profile>.txt to scope one)
 ├── ghostty/
 │   └── config.ghostty               # Ghostty terminal config
 └── install.sh                       # Symlinks everything into place, creates local companions
@@ -67,6 +66,10 @@ common personal
 Rules land in per-profile subdirectories (`~/.claude/rules/common/`, `~/.claude/rules/personal/`).
 Claude Code discovers `rules/` recursively, so this namespaces them and avoids cross-profile
 filename collisions. Plugin lists follow the same pattern: `plugins-<profile>.txt`.
+
+Today only `common` carries content: everything portable turned out to be genuinely universal,
+including Obsidian (personal notes, but used on every machine). The split exists for the *next*
+employer's config, which should never reach the personal machine by default.
 
 ## Install
 

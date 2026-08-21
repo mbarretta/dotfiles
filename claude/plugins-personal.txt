@@ -1,2 +1,0 @@
-# Personal-environment plugins only.
-obsidian@obsidian-skills
