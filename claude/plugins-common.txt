@@ -8,6 +8,7 @@ elastic-kibana@elastic-agent-skills
 elastic-security@elastic-agent-skills
 frontend-design@claude-plugins-official
 mab-harness@mab-agent-skills
+mab-personal@mab-agent-skills
 playwright@claude-plugins-official
 security-guidance@claude-plugins-official
 slack@claude-plugins-official
