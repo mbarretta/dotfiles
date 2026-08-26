@@ -35,6 +35,14 @@ crash:
 | `for w in $unquoted` | Does **not** word-split; the whole value arrives as one word. Force it with `${=v}`. |
 | `mapfile`, `readarray`, `shopt` | Not builtins. |
 | `${v,,}` / `${v^^}` | Hard `bad substitution` that aborts the rest of the command. Use `${(L)v}` / `${(U)v}`. |
+| `status=$?` | `status` is a **read-only** alias for `$?`; assigning to it errors. Same for `pipestatus`, `argv`. Use `rc=$?`. |
 
-Only the last one is loud. Prefer POSIX-portable constructs, and when a result feeds a claim you are
-about to make, verify it a second way rather than trusting one expansion.
+Prefer POSIX-portable constructs, and when a result feeds a claim you are about to make, verify it a
+second way rather than trusting one expansion.
+
+**A failed assignment does not un-run the command before it.** In `out=$(git push …); status=$?`,
+the substitution executes first, so the push *lands* and only then does the read-only assignment
+abort the line — printing an error and no output. The visible result reads like nothing happened
+while the remote has already changed. Never retry a mutating command on the strength of an error
+message alone: check the actual state first (`git ls-remote`, `git log origin/main`), because the
+retry may be the second execution, not the first.
