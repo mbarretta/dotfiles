@@ -20,4 +20,21 @@ check the status separately:
 if out=$(git merge --no-ff "$branch" -m "$msg" 2>&1); then ... else ... fi
 ```
 
-The same applies to any `cmd | head`, `cmd | grep`, or `cmd | tee` inside an `&&` chain.
+The same applies to any `cmd | head`, `cmd | grep`, or `cmd | tee` inside an `&&` chain. And
+`PIPESTATUS` is **not** the escape hatch — see below; it is empty here, so reaching for it turns a
+violation of this rule into a silently unverified claim.
+
+**The shell is zsh 5.9 — there is no bash** (`BASH_VERSION` is unset). Bashisms mostly fail
+*silently*, returning a wrong answer with a zero exit status, which is what makes them worse than a
+crash:
+
+| Bashism | zsh reality |
+| --- | --- |
+| `${PIPESTATUS[0]}` | Empty. zsh spells it `$pipestatus` and **1-indexes** it: `${pipestatus[1]}`. |
+| `${arr[0]}` | Empty. Arrays start at 1 — `${arr[1]}` is the first element. |
+| `for w in $unquoted` | Does **not** word-split; the whole value arrives as one word. Force it with `${=v}`. |
+| `mapfile`, `readarray`, `shopt` | Not builtins. |
+| `${v,,}` / `${v^^}` | Hard `bad substitution` that aborts the rest of the command. Use `${(L)v}` / `${(U)v}`. |
+
+Only the last one is loud. Prefer POSIX-portable constructs, and when a result feeds a claim you are
+about to make, verify it a second way rather than trusting one expansion.
