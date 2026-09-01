@@ -193,24 +193,28 @@ do_ghostty() {
 
 # Because ~/.claude/settings.json is a symlink into this repo, Claude Code's own
 # writes land in the working tree. It re-adds `enabledPlugins` on every plugin
-# enable/disable — machine-local state that must not be committed, or a fresh
-# clone inherits this machine's plugin set. .gitattributes marks the file; the
+# enable/disable, and `model`/`effortLevel` on /model and /config changes —
+# machine-local state that must not be committed, or a fresh clone inherits
+# this machine's plugin/model/effort choices. `autoMode` (the classifier
+# customization block) is also machine/project-specific by nature and gets
+# the same treatment, even though nothing writes it automatically — it's
+# edited by hand per-project the same way. .gitattributes marks the file; the
 # clean filter itself lives in .git/config, which git deliberately never takes
 # from a clone, so every machine has to set it here.
 install_settings_filter() {
   [ "$DRY_RUN" = 0 ] && [ "$PRINT_MAP" = 0 ] || return 0
   [ -d "$DOTFILES/.git" ] || return 0
   if ! command -v jq >/dev/null 2>&1; then
-    warn "jq missing — settings.json clean filter inactive; enabledPlugins will leak into commits"
+    warn "jq missing — settings.json clean filter inactive; machine-local keys will leak into commits"
     return 0
   fi
-  local want="jq -S 'del(.enabledPlugins)'"
+  local want="jq -S 'del(.enabledPlugins, .model, .effortLevel, .autoMode)'"
   if [ "$(git -C "$DOTFILES" config --get filter.claude-settings.clean 2>/dev/null)" = "$want" ]; then
     say "  ok settings.json clean filter"
   elif git -C "$DOTFILES" config filter.claude-settings.clean "$want" 2>/dev/null; then
     say "  set settings.json clean filter"
   else
-    warn "could not set the settings.json clean filter; enabledPlugins will leak into commits"
+    warn "could not set the settings.json clean filter; machine-local keys will leak into commits"
   fi
   return 0
 }

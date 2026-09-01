@@ -1,6 +1,5 @@
 {
   "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
   "env": {
     "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "5"
   },
@@ -33,7 +32,9 @@
       }
     }
   },
-  "model": "opus[1m]",
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "plansDirectory": ".claude/plans",
   "skipAutoPermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
