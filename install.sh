@@ -224,6 +224,7 @@ do_claude_core() {
   install_settings_filter
   link "$DOTFILES/claude/CLAUDE.md"            "$TARGET_HOME/.claude/CLAUDE.md"
   link "$DOTFILES/claude/statusline-command.sh" "$TARGET_HOME/.claude/statusline-command.sh"
+  link "$DOTFILES/claude/hooks/load-lessons.py" "$TARGET_HOME/.claude/hooks/load-lessons.py"
   link "$DOTFILES/claude/settings.json"        "$TARGET_HOME/.claude/settings.json"
   companion "$TARGET_HOME/.claude/CLAUDE.local.md"
   companion "$TARGET_HOME/.claude/settings.local.json" '{}

@@ -32,6 +32,19 @@
       }
     }
   },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.claude/hooks/load-lessons.py\"",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "defaultMode": "auto"
   },
