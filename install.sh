@@ -172,10 +172,6 @@ companion() {
   echo "  created $dst (machine-local, never committed)"
 }
 
-need_bin() {
-  command -v "$1" >/dev/null 2>&1 || warn "missing '$1' — $2"
-}
-
 # ---------------------------------------------------------------- components
 
 do_zsh() {
@@ -274,7 +270,6 @@ do_claude_commands() {
 do_claude_skills() {
   [ "$PRINT_MAP" = 1 ] && return 0
   say "==> claude skills"
-  need_bin gws "brew install gws — provides the 25 gws-*/recipe-* skills"
   [ -d "$TARGET_HOME/.agents/skills/web-design-guidelines" ] || \
     warn "vercel-labs skills absent — npx skills add vercel-labs/agent-skills -g"
   return 0

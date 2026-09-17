@@ -23,7 +23,7 @@ dotfiles/
 ```
 
 Skills are **not** vendored here. They arrive as plugins from a marketplace, or from their own
-upstream installers (`brew install gws`, `npx skills add vercel-labs/agent-skills -g`). Vendored
+upstream installers (`npx skills add vercel-labs/agent-skills -g`). Vendored
 copies drift silently, which is the problem this repo exists to avoid.
 
 Auto memory is **not** synced. It is machine-local by design, keyed to a repository path, and holds
