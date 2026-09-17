@@ -1,72 +1,51 @@
-# Workflow Orchestration
+# Workflow
 
-## 1. Plan Node Default
-- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
-- If something goes sideways, STOP and re-plan immediately - don't keep pushing
-- Use plan mode for verification steps, not just building
-- Write detailed specs upfront to reduce ambiguity
+## 1. Plan Mode Default
+- Plan when the solution's shape is open: architecture, multi-module changes, an ask with more than one reading. Step count isn't the test.
+- Plan the verification too: decide up front what evidence proves it works.
+- If a task goes sideways, stop and re-plan.
 
 ## 2. Subagent Strategy
-- Use subagents liberally to keep main context window clean
-- Offload research, exploration, and parallel analysis to subagents
-- For complex problems, throw more compute at it via subagents
-- One track per subagent for focused execution
+- Delegate read-heavy work where you need only the conclusion: pattern sweeps, unfamiliar-code surveys, independent investigations. Launch independent agents in one message so they run in parallel.
+- Don't delegate what one grep or a known-file read answers.
+- One concern per agent; ask for findings with `file:line`, not transcripts.
+- Never delegate a search and also run it yourself.
 
 ## 3. Self-Improvement Loop
-- After ANY correction from the user: update `tasks/lessons.md` with the pattern
-- Write rules for yourself that prevent the same mistake
-- Ruthlessly iterate on these lessons until mistake rate drops
-- Review lessons at session start for relevant project
+- After ANY correction: append the preventing rule to the project's `.claude/lessons.md` — the rule, not the story.
+- The `SessionStart` hook (`~/.claude/hooks/load-lessons.py`) injects that file automatically, headless runs included.
+- Environment-wide lessons go in `~/.claude/rules/` instead — see `working-habits`.
 
 ## 4. Verification Before Done
-- Never mark a task complete without proving it works
-- Diff behavior between main and your changes when relevant
-- Ask yourself: "Would a staff engineer approve this?"
-- Run tests, check logs, demonstrate correctness
+- Diff behavior against `main` when a change is behavioral. Standard of evidence: `verification-and-claims`.
 
-## 5. Demand Elegance (Balanced)
-- For non-trivial changes: pause and ask "is there a more elegant way?"
-- If a fix feels hacky: "Knowing everything I know now, implement the elegant solution"
-- Skip this for simple, obvious fixes - don't over-engineer
-- Challenge your own work before presenting it
+## 5. Demand Elegance
+- If a fix feels hacky, re-prompt yourself: "knowing everything I know now, implement the elegant solution." Skip for simple, obvious fixes.
 
 ## 6. Autonomous Bug Fixing
-- When given a bug report: just fix it. Don't ask for hand-holding
-- Point at logs, errors, failing tests - then resolve them
-- Zero context switching required from the user
-- Go fix failing CI tests without being told how
-
-## Task Management
-
-1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
-2. **Verify Plan**: Check in before starting implementation
-3. **Track Progress**: Mark items complete as you go
-4. **Explain Changes**: High-level summary at each step
-5. **Document Results**: Add review section to `tasks/todo.md`
-6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
-
-## Core Principles
-
-- **Simplicity First**: Make every change as simple as possible. Impact minimal code.
-- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
-- **Minimat Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
-
+- A bug report, failing test, or red CI is an unambiguous goal with an unknown cause: diagnose and fix it — no plan mode, no hand-holding. Confirm the mechanism before editing (`verification-and-claims`).
+- Report what you found and changed; don't ask which obvious path to take.
+- Explicit exception to §1.
 
 # User Preferences
 
 ## Communication Style
-- Use a balanced communication style: be concise in updates but provide key explanations when relevant
-- Focus on actionable information while including context for important decisions
-- Avoid unnecessary verbosity, but don't skip critical reasoning
+- Use a balanced communication style: be concise, but provide key explanations when relevant
 
 ## Git Workflow
 - **IMPORTANT**: Commit messages MUST be one sentence only - no multi-line descriptions or bullet points in the message body
-- **IMPORTANT**: NEVER add Claude attribution, "Generated with Claude Code", or "Co-Authored-By: Claude" to commits
 - Follow conventional commit format when appropriate (feat:, fix:, refactor:, etc.)
 - PR bodies follow the same rules: 2-4 sentences covering what changed, why, and the verification gate — no attribution footer, no section headers unless genuinely needed
 
 ## Planning Documents
-- **IMPORTANT**: When saving planning documents (plans, specs, architecture docs, etc.), and you're in `~/workspace` or a child directory, **ALWAYS** use `.claude/plans/` — create it if it doesn't exist. This keeps project-specific plans co-located with the project rather than mixed into global context.
+- **IMPORTANT**: Hand-authored planning docs (specs, architecture notes, design docs) go in the project's `.claude/plans/` — create it if it doesn't exist. This keeps project-specific plans co-located with the project rather than mixed into global context.
+- Whether a project's `.claude/plans/` is committed or gitignored is a per-project decision. Don't assume either way — follow what the project already does, and ask if it's a new directory.
+
+## Markdown Files
+- Write every paragraph, list item, and blockquote as one continuous line. Never insert a line break in the middle of a paragraph unless it meets the following conditions:
+    - You're purposely creating an ASCII graphic or markdown table that needs to render with exact character counts. 
+    - When linebreaks give semantic meaning: between block elements (headings, list items, table rows), inside code block/fences, and a deliberate blank line to separate paragraphs
+- These preferences do not apply to inline text output in the chat
 
 # Machine-Local Additions
 
