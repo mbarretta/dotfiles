@@ -280,10 +280,49 @@ do_claude_skills() {
   return 0
 }
 
+# `claude plugin install` resolves a plugin name against the marketplace clone
+# under ~/.claude/plugins/marketplaces/<name>/, and nothing has cloned those on a
+# fresh machine: the clones are fetched lazily by an interactive session reading
+# extraKnownMarketplaces, and the non-interactive `plugin` subcommands don't
+# register settings-declared marketplaces at all. So every install fails with
+# "not found in marketplace" — the CLI's suggested `marketplace update` fails too
+# ("Marketplace not found"), because there is nothing registered yet to update.
+#
+# `marketplace add` is the only bootstrap primitive. It needs a real source (a
+# bare marketplace name is rejected), so the sources come from settings.json —
+# the same declaration Claude Code itself reads, rather than a second copy that
+# could drift. It is idempotent once the clone exists.
+bootstrap_marketplaces() {
+  local name src mp="$TARGET_HOME/.claude/plugins/marketplaces"
+  if ! command -v jq >/dev/null 2>&1; then
+    warn "jq missing — cannot read marketplace sources from settings.json; plugin installs will fail"
+    return 0
+  fi
+  # claude-plugins-official is a CLI default rather than a settings entry, but it
+  # still has to be cloned explicitly; the rest are read from settings.json.
+  while IFS="$(printf '\t')" read -r name src; do
+    [ -n "$name" ] && [ -n "$src" ] || continue
+    if [ -d "$mp/$name" ]; then say "  ok marketplace $name"; continue; fi
+    if [ "$DRY_RUN" = 1 ]; then echo "  would add marketplace $name ($src)"; continue; fi
+    if claude plugin marketplace add "$src" </dev/null >/dev/null 2>&1; then
+      say "  added marketplace $name"
+    else
+      warn "could not add marketplace $name ($src)"
+    fi
+  done <<EOF
+claude-plugins-official	anthropics/claude-plugins-official
+$(jq -r '.extraKnownMarketplaces // {} | to_entries[]
+         | "\(.key)\t\(.value.source.repo // .value.source.url // .value.source.path // "")"' \
+       "$DOTFILES/claude/settings.json")
+EOF
+  return 0
+}
+
 do_claude_plugins() {
   [ "$PRINT_MAP" = 1 ] && return 0
   say "==> claude plugins [profiles: $(active_profiles)]"
   command -v claude >/dev/null 2>&1 || { warn "claude not on PATH; skipping plugins"; return 0; }
+  bootstrap_marketplaces
   local p prof f err
   for prof in $(active_profiles); do
     f="$DOTFILES/claude/plugins-$prof.txt"
@@ -297,7 +336,10 @@ do_claude_plugins() {
       if err="$(claude plugin install "$p" -s user -y </dev/null 2>&1)"; then
         echo "  installed $p"
       else
-        echo "  FAILED $p — $(printf '%s' "$err" | tr '\n' ' ' | tail -c 160)"
+        # keep the HEAD of the message: `tail -c` lopped off the front, so the
+        # plugin name and the actual error were the parts that got eaten
+        # ("claude-api" surfacing as "de-api") while the generic advice survived.
+        echo "  FAILED $p — $(printf '%s' "$err" | tr '\n' ' ' | cut -c1-200)"
       fi
     done 3< "$f"
   done
