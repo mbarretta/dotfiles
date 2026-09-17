@@ -23,4 +23,4 @@ export PROMPT='
 export PATH="$HOME/.local/bin:$PATH"
 
 alias ll="ls -al"
-
+alias gss="git status --short"
