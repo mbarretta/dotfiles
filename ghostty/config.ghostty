@@ -4,8 +4,12 @@ copy-on-select = clipboard
 font-size = 14
 
 # always default to ~/ vs current working directory in other tabs/windows
+working-directory = ~/workspace/github/mbarretta
 window-inherit-working-directory = false
 tab-inherit-working-directory = false
+
+# reopen tabs on restart
+window-save-state = always
 
 # cmd + arrow to move between tabs
 keybind = super+arrow_right=next_tab
