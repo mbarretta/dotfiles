@@ -11,6 +11,12 @@
         "source": "github"
       }
     },
+    "clickhouse-skills": {
+      "source": {
+        "repo": "ClickHouse/skills",
+        "source": "github"
+      }
+    },
     "elastic-agent-skills": {
       "source": {
         "source": "git",
@@ -45,6 +51,14 @@
     ]
   },
   "includeCoAuthoredBy": false,
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "high"
+    }
+  },
   "permissions": {
     "defaultMode": "auto"
   },
