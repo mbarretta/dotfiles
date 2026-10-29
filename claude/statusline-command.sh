@@ -18,8 +18,22 @@ if [ -n "$git_branch" ]; then
   git -C "$cwd" status --porcelain 2>/dev/null | grep -q '^??' && git_untracked="?"
 fi
 
+# Fixed-width cwd: drop whole leading dirs behind "…/", pad short paths so later fields don't shift
+cwd_width=77
+cwd_disp=$cwd
+cwd_vis=${#cwd}
+if [ "$cwd_vis" -gt "$cwd_width" ]; then
+  rest=${cwd#/}
+  while [ $((${#rest} + 2)) -gt "$cwd_width" ] && [ "${rest#*/}" != "$rest" ]; do rest=${rest#*/}; done
+  # A single component wider than the column keeps its last characters
+  [ $((${#rest} + 2)) -gt "$cwd_width" ] && rest=$(printf '%s' "$rest" | cut -c $((${#rest} - cwd_width + 3))-)
+  cwd_disp="…/$rest"
+  cwd_vis=$((${#rest} + 2))
+fi
+
 # user@host :: /path
-printf '\033[1;36m%s\033[0m\033[38;5;240m@\033[0m\033[1;36m%s\033[0m \033[38;5;240m::\033[0m \033[0;32m%s\033[0m' "$(whoami)" "$(hostname -s)" "$cwd"
+printf '\033[1;36m%s\033[0m\033[38;5;240m@\033[0m\033[1;36m%s\033[0m \033[38;5;240m::\033[0m \033[0;32m%s\033[0m' "$(whoami)" "$(hostname -s)" "$cwd_disp"
+printf "%$((cwd_width - cwd_vis))s" ''
 
 # :: branch [*?]
 if [ -n "$git_branch" ]; then
