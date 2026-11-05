@@ -67,6 +67,7 @@
   "skipWorkflowUsageWarning": true,
   "statusLine": {
     "command": "sh ~/.claude/statusline-command.sh",
+    "refreshInterval": 15,
     "type": "command"
   },
   "theme": "dark-daltonized"
