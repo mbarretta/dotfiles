@@ -32,3 +32,5 @@
 - **Don't declare visual or behavioral parity from a screenshot.** Diff the actual computed values
   (`getComputedStyle`, serialized state, byte comparison) element by element. Downscaled images hide
   exactly the differences that matter.
+
+- **Each reason for rejecting an option must survive its cheapest workaround.** Before citing a cost, check whether a one-line config change defeats it, and measure size or performance claims (file counts, bytes) instead of asserting them. A strong reason stated next to a weak one gets dismissed along with the weak one.
