@@ -12,8 +12,8 @@
 - Never delegate a search and also run it yourself.
 
 ## 3. Self-Improvement Loop
-- After ANY correction: append the preventing rule to the project's `.claude/lessons.md` — the rule, not the story.
-- The `SessionStart` hook (`~/.claude/hooks/load-lessons.py`) injects that file automatically, headless runs included.
+- After ANY correction: append the preventing rule to the project's `lessons.md` — the rule, not the story. It lives in the project's vault artifact folder, the one the `SessionStart` hook names in its injected context.
+- The `SessionStart` hook injects that file automatically, headless runs included.
 - Environment-wide lessons go in `~/.claude/rules/` instead — see `working-habits`.
 
 ## 4. Verification Before Done
@@ -38,8 +38,9 @@
 - PR bodies follow the same rules: 2-4 sentences covering what changed, why, and the verification gate — no attribution footer, no section headers unless genuinely needed
 
 ## Planning Documents
-- **IMPORTANT**: Hand-authored planning docs (specs, architecture notes, design docs) go in the project's `.claude/plans/` — create it if it doesn't exist. This keeps project-specific plans co-located with the project rather than mixed into global context.
-- Whether a project's `.claude/plans/` is committed or gitignored is a per-project decision. Don't assume either way — follow what the project already does, and ask if it's a new directory.
+- Plan-mode files are written to the project's `.claude/plans/`, as Claude Code requires, and are mirrored to the project's vault artifact folder automatically. Don't copy them by hand.
+- **IMPORTANT**: Hand-authored specs, architecture notes, design docs, and research go straight into the `research/` subfolder of the project's vault artifact folder (the one the `SessionStart` hook names), not into `.claude/plans/`.
+- Whether a project tracks `.claude/plans/` in git is still a per-project decision. Don't assume either way — follow what the project already does, and ask if it's a new directory.
 
 ## Markdown Files
 - Write every paragraph, list item, and blockquote as one continuous line. Never insert a line break in the middle of a paragraph unless it meets the following conditions:

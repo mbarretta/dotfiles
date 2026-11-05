@@ -19,10 +19,12 @@
 - **Changes go in the real code, not one-off scripts.** Use throwaway scripts for diagnosis and
   verification only. When asked to change behavior, change the thing that ships.
 
-- **Working artifacts go in a dedicated directory.** Screenshots, mockups, exploratory HTML, palette
-  previews, and scratch output belong in a purpose-named directory, never loose at the repo root
-  where they clutter `git status` and pollute the project listing. If a tool defaults to the root,
-  override the output path explicitly.
+- **Working artifacts go in a dedicated directory.** That directory is the project's vault artifact
+  folder (the one the `SessionStart` hook names): research notes in its `research/`, reviews in
+  `reviews/`, and mockups, exploratory HTML, and palette previews in `mockups/`. Throwaway scratch
+  (screenshots, probe output) stays in the session scratchpad, out of the vault's git. Never leave
+  either loose at the repo root, where it clutters `git status` and pollutes the project listing. If
+  a tool defaults to the root, override the output path explicitly.
 
 - **Show the diff itself when asking for approval.** Tool output is not reliably visible to the
   user, so a diff printed by a Bash call has not been shown. Paste the raw unified diff into the

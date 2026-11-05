@@ -1,7 +1,9 @@
 # Git and shell gotchas that fail confusingly
 
-**Commit signing is Sigstore keyless (`gitsign`).** `gpg.format = x509` with `commit.gpgsign = true`,
-signing through `gitsign` rather than GPG. There is no `gitsign-credential-cache` daemon running, so:
+**Commit signing is currently off in every git scope on this machine.** The `gitsign` notes that
+follow apply only if it is re-enabled (`gpg.format = x509` with `commit.gpgsign = true`, signing
+through Sigstore keyless `gitsign` rather than GPG). There is no `gitsign-credential-cache` daemon,
+so with signing on:
 
 - A commit can **block on an OIDC browser tab**. If `git commit` hangs with no output, that is why —
   hand the command to the user (prefix `!` so they can complete the flow) rather than waiting on it
