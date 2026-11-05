@@ -27,7 +27,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import project_vault_lib as lib  # noqa: E402
 
-PROJECT_SUBDIRS = ("plans", "research", "reviews", "mockups", "memory")
 MOVED_NAME = "MOVED.md"
 SESSIONS_UNKNOWN = "sessions: unknown, confirm no Claude session is open"
 LESSONS_COMMIT_MSG = "chore: move lessons.md to the claude vault"
@@ -155,7 +154,7 @@ def live_sessions() -> list[dict] | None:
 
 def _worktree_paths(root: Path) -> list[Path]:
     paths = [root.resolve()]
-    result = lib._git(root, "worktree", "list", "--porcelain")
+    result = lib.git_run(root, "worktree", "list", "--porcelain")
     if result is not None and result.returncode == 0:
         for line in result.stdout.splitlines():
             if line.startswith("worktree "):
@@ -195,9 +194,16 @@ class Row:
 
 def _slug(root: Path, vault: Path) -> tuple[str, str | None]:
     try:
-        return lib.slug_for(root, vault), None
+        slug = lib.slug_for(root, vault)
     except lib.SlugCollision as exc:
         return root.name, f"slug collision: {exc}"
+    folder = vault / "projects" / root.name
+    if slug != root.name and folder.is_dir() and not (folder / "_project.md").exists():
+        return slug, (
+            f"projects/{root.name} exists without _project.md; to adopt it, create "
+            f'{folder / "_project.md"} with repo: "{root}" in its frontmatter'
+        )
+    return slug, None
 
 
 def build_row(
@@ -213,7 +219,7 @@ def build_row(
         name: len(_files_under(claude / name)) if name in present else 0
         for name in lib.MIRROR_DIRS
     }
-    listed = lib._git(root, "ls-files", "--", ".claude/plans")
+    listed = lib.git_run(root, "ls-files", "--", ".claude/plans")
     tracked = bool(listed and listed.returncode == 0 and listed.stdout.strip())
 
     mem = memory_dir(root)
@@ -238,7 +244,7 @@ def build_row(
                 row.in_progress.append(plan.name)
     if collision:
         row.hard_blockers.append(collision)
-    status = lib._git(root, "status", "--porcelain", "--untracked-files=no", "--", ".claude")
+    status = lib.git_run(root, "status", "--porcelain", "--untracked-files=no", "--", ".claude")
     if status is None or status.returncode != 0:
         row.hard_blockers.append("git status failed")
     elif status.stdout.strip():
@@ -324,22 +330,6 @@ def _today() -> str:
     return datetime.date.today().isoformat()
 
 
-def ensure_project(root: Path, vault: Path, slug: str) -> None:
-    """Create ``projects/<slug>/`` with its subfolders and a write-once ``_project.md``."""
-    project = vault / "projects" / slug
-    for name in PROJECT_SUBDIRS:
-        (project / name).mkdir(parents=True, exist_ok=True)
-    marker = project / "_project.md"
-    if marker.exists():
-        return
-    remote = lib._git(root, "remote", "get-url", "origin")
-    url = remote.stdout.strip() if remote is not None and remote.returncode == 0 else ""
-    marker.write_text(
-        f"---\nslug: {slug}\nrepo: {root}\nremote: {url}\ncreated: {_today()}\n---\n",
-        encoding="utf-8",
-    )
-
-
 def mirror_and_verify(root: Path, vault: Path, slug: str) -> int:
     """Sweep the mirror dirs, then require every source file to match its copy byte for byte."""
     copied = lib.sweep(root, vault, slug)
@@ -361,6 +351,8 @@ def move_lessons(root: Path, vault: Path, slug: str) -> str | None:
     if not src.is_file():
         return None
     dst = vault / "projects" / slug / "lessons.md"
+    if lib.symlink_on_path(vault, dst):
+        raise Refusal(f"{dst} or a folder above it is a symlink; not writing through it")
     if dst.exists() and not filecmp.cmp(src, dst, shallow=False):
         raise VerifyError(f"{dst} already exists with different content; reconcile it by hand")
     if not dst.exists():
@@ -368,10 +360,10 @@ def move_lessons(root: Path, vault: Path, slug: str) -> str | None:
     if not filecmp.cmp(src, dst, shallow=False):
         raise VerifyError(f"lessons copy {dst} differs from {src}")
     rel = ".claude/lessons.md"
-    tracked = lib._git(root, "ls-files", "--error-unmatch", "--", rel)
+    tracked = lib.git_run(root, "ls-files", "--error-unmatch", "--", rel)
     if tracked is not None and tracked.returncode == 0:
         for args in (("rm", "-q", "--", rel), ("commit", "-q", "-m", LESSONS_COMMIT_MSG, "--", rel)):
-            result = lib._git(root, *args)
+            result = lib.git_run(root, *args)
             if result is None or result.returncode != 0:
                 err = result.stderr.strip() if result is not None else "git unavailable"
                 raise VerifyError(f"git {args[0]} of {rel} failed: {err}")
@@ -446,6 +438,8 @@ def move_memory(root: Path, vault: Path, slug: str, owners: dict[str, list[Path]
     planned = []
     for path in files:
         dst = dst_base / path.relative_to(src)
+        if lib.symlink_on_path(vault, dst):
+            raise Refusal(f"{dst} or a folder above it is a symlink; not writing through it")
         content = _transform(path)
         if dst.exists() and dst.read_bytes() != content:
             raise VerifyError(f"{dst} already exists with different content; reconcile it by hand")
@@ -509,7 +503,10 @@ def apply(vault: Path, slug: str, allow_in_progress: bool) -> int:
     for note in row.notes:
         print(f"note: {note}", file=sys.stderr)
 
-    ensure_project(root, vault, slug)
+    try:
+        lib.ensure_project(root, vault, slug)
+    except lib.UnsafePath as exc:
+        raise Refusal(str(exc)) from exc
     copied = mirror_and_verify(root, vault, slug)
     print(f"{slug}: mirrored {copied} new or changed files")
     for step in (move_lessons(root, vault, slug), move_memory(root, vault, slug, owners)):
