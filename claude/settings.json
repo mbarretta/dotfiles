@@ -39,11 +39,33 @@
     }
   },
   "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.claude/hooks/project-vault.py\" mirror",
+            "type": "command"
+          }
+        ],
+        "matcher": "Write|Edit|MultiEdit"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.claude/hooks/project-vault.py\" end",
+            "timeout": 30,
+            "type": "command"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
           {
-            "command": "\"$HOME/.claude/hooks/load-lessons.py\"",
+            "command": "\"$HOME/.claude/hooks/project-vault.py\" start",
             "type": "command"
           }
         ]
@@ -60,6 +82,9 @@
     }
   },
   "permissions": {
+    "additionalDirectories": [
+      "~/workspace/obsidian-claude-vault"
+    ],
     "defaultMode": "auto"
   },
   "plansDirectory": ".claude/plans",

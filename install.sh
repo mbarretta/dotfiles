@@ -157,6 +157,23 @@ link() {
   echo "  linked $dst"
 }
 
+# Remove a link an earlier run installed for a file since retired from this repo.
+# Only a symlink (dangling included) whose target is exactly that retired path
+# goes; a regular file or a link anywhere else belongs to the user and stays.
+# --prune never looks in ~/.claude/hooks, so this is the only cleanup it gets.
+retire_link() {
+  local src="$1" dst="$2"
+  [ "$PRINT_MAP" = 1 ] && return 0
+  { [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; } || return 0
+  if [ "$DRY_RUN" = 1 ]; then echo "  would remove retired link $dst"; return 0; fi
+  if rm -f -- "$dst" 2>/dev/null; then
+    echo "  removed retired link $dst"
+  else
+    warn "could not remove retired link $dst"
+  fi
+  return 0
+}
+
 # A companion that can't be written must not abort the run under `set -e` —
 # otherwise one permission error silently skips every remaining component.
 companion() {
@@ -224,7 +241,9 @@ do_claude_core() {
   install_settings_filter
   link "$DOTFILES/claude/CLAUDE.md"            "$TARGET_HOME/.claude/CLAUDE.md"
   link "$DOTFILES/claude/statusline-command.sh" "$TARGET_HOME/.claude/statusline-command.sh"
-  link "$DOTFILES/claude/hooks/load-lessons.py" "$TARGET_HOME/.claude/hooks/load-lessons.py"
+  link "$DOTFILES/claude/hooks/project-vault.py"     "$TARGET_HOME/.claude/hooks/project-vault.py"
+  link "$DOTFILES/claude/hooks/project_vault_lib.py" "$TARGET_HOME/.claude/hooks/project_vault_lib.py"
+  retire_link "$DOTFILES/claude/hooks/load-lessons.py" "$TARGET_HOME/.claude/hooks/load-lessons.py"
   link "$DOTFILES/claude/settings.json"        "$TARGET_HOME/.claude/settings.json"
   companion "$TARGET_HOME/.claude/CLAUDE.local.md"
   companion "$TARGET_HOME/.claude/settings.local.json" '{}
