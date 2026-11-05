@@ -1,5 +1,9 @@
-theme = Solarized Dark Higher Contrast
+# theme = Solarized Dark Higher Contrast
 # theme = Cobalt2
+# theme = GitHub Dark Colorblind
+# theme = Nord Wave
+theme = Dark Pastel 
+palette-generate = true
 copy-on-select = clipboard
 font-size = 14
 
