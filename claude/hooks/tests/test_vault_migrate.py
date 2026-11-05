@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import HOOKS_DIR, git, init_repo
+from conftest import HOOKS_DIR, claim, git, init_repo
 
 SCRIPT = HOOKS_DIR / "vault-migrate.py"
 _spec = importlib.util.spec_from_file_location("vault_migrate", SCRIPT)
@@ -311,6 +311,7 @@ def test_sessions_unparseable_is_unknown_not_blocker(home, vault, alpha, capsys)
 
 def test_full_apply_then_idempotent(home, vault, alpha, capsys):
     # Pre-existing vault-only file must survive; an unrelated staged change must stay staged.
+    claim(vault, "alpha-repo", alpha)
     write(vault / "projects" / "alpha-repo" / "plans" / "archived.md", "old plan\n")
     write(alpha / "unrelated.txt", "staged\n")
     git(alpha, "add", "--", "unrelated.txt")
@@ -320,10 +321,11 @@ def test_full_apply_then_idempotent(home, vault, alpha, capsys):
     project = vault / "projects" / "alpha-repo"
 
     # projects/<slug> and _project.md
-    for sub in vm.PROJECT_SUBDIRS:
+    for sub in vm.lib.PROJECT_SUBDIRS:
         assert (project / sub).is_dir()
     marker = (project / "_project.md").read_text()
-    assert "slug: alpha-repo\n" in marker and f"repo: {alpha}\n" in marker and "created: " in marker
+    # The test claimed the folder first, so the marker is its own and stays unrewritten.
+    assert 'slug: "alpha-repo"\n' in marker and f'repo: "{alpha}"\n' in marker
 
     # mirror
     assert (project / "plans" / "design.md").read_text() == "# design\n"
@@ -380,6 +382,7 @@ def test_full_apply_then_idempotent(home, vault, alpha, capsys):
 
 
 def test_mirror_verify_failure_exits_1(home, vault, alpha, capsys):
+    claim(vault, "alpha-repo", alpha)
     dst = write(vault / "projects" / "alpha-repo" / "plans" / "design.md", "# vault edit\n")
     future = dst.stat().st_mtime + 100
     os.utime(dst, (future, future))
@@ -393,6 +396,7 @@ def test_mirror_verify_failure_exits_1(home, vault, alpha, capsys):
 
 
 def test_memory_conflict_in_vault_exits_1_before_emptying_source(home, vault, alpha):
+    claim(vault, "alpha-repo", alpha)
     write(vault / "projects" / "alpha-repo" / "memory" / "MEMORY.md", "written by a live session\n")
     assert run("--apply", "--only", "alpha-repo") == 1
     assert sorted(p.name for p in mem_dir(alpha).iterdir()) == ["MEMORY.md", "topic_file.md"]
@@ -423,3 +427,47 @@ def test_add_alias_leaves_existing_aliases_and_nested_name():
     assert vm.add_alias(nested) == nested
     assert vm.add_alias("no frontmatter\nname: x\n") == "no frontmatter\nname: x\n"
     assert vm.add_alias('---\nname: "a b"\n---\n') == '---\nname: "a b"\naliases: ["a b"]\n---\n'
+
+
+# --- review fixes -----------------------------------------------------------
+
+
+def test_unmarked_folder_named_for_the_repo_blocks_with_adopt_hint(home, vault, alpha, capsys):
+    write(vault / "projects" / "alpha-repo" / "plans" / "hand-made.md", "spec\n")
+    assert run() == 0
+    row = rows(capsys.readouterr().out)["owner-alpha-repo"]
+    assert "exists without _project.md" in row["blockers"]
+    assert run("--apply", "--only", "owner-alpha-repo") == 2
+    assert not (vault / "projects" / "owner-alpha-repo").exists()
+
+
+def test_migrate_then_hook_start_agree(home, vault, alpha):
+    """Round trip: what --apply sets up is exactly what the hook's start then resolves to."""
+    git(alpha, "remote", "add", "origin", "https://me:s3cret@example.invalid/owner/alpha-repo")
+    assert run("--apply", "--only", "alpha-repo") == 0
+    project = vault / "projects" / "alpha-repo"
+    marker = project / "_project.md"
+    marker_before = marker.read_bytes()
+    assert b"s3cret" not in marker_before
+    settings = alpha / ".claude" / "settings.local.json"
+    settings_before = settings.read_bytes()
+    vault_head = head(vault)
+
+    result = subprocess.run(
+        [sys.executable, str(HOOKS_DIR / "project-vault.py"), "start"],
+        input=json.dumps({"cwd": str(alpha)}),
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    assert (result.returncode, result.stderr) == (0, "")
+    ctx = json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+    # Same folder, migrated lessons injected, nothing for the hook to redo.
+    assert ctx.startswith(f"Artifact folder for this project: {project}/.")
+    assert "- a lesson" in ctx and "unmigrated" not in ctx
+    assert "takes effect next session" not in ctx
+    assert marker.read_bytes() == marker_before
+    assert settings.read_bytes() == settings_before
+    assert head(vault) == vault_head
+    assert not (vault / "projects" / "owner-alpha-repo").exists()

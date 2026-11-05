@@ -85,6 +85,9 @@
     "additionalDirectories": [
       "~/workspace/obsidian-claude-vault"
     ],
+    "allow": [
+      "Bash(/Users/michael.barretta/.claude/plugins/cache/mab-agent-skills/mab-harness/*/scripts/plan-review.sh *)"
+    ],
     "defaultMode": "auto"
   },
   "plansDirectory": ".claude/plans",

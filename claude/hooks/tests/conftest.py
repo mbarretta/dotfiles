@@ -93,3 +93,11 @@ def vault(fake_home: Path) -> Path:
 def repo(fake_home: Path) -> Path:
     """A git repo with one commit at ``<HOME>/workspace/github/owner/name``."""
     return init_repo(fake_home / "workspace" / "github" / "owner" / "name")
+
+
+def claim(vault: Path, slug: str, repo_path: Path | str) -> Path:
+    """Mark ``projects/<slug>`` as owned by ``repo_path``, as ensure_project would."""
+    folder = vault / "projects" / slug
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "_project.md").write_text(f'---\nslug: "{slug}"\nrepo: "{repo_path}"\n---\n', encoding="utf-8")
+    return folder

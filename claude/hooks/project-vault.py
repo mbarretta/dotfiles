@@ -25,7 +25,6 @@ LESSONS_CAP = 8000
 MEMORY_CAP = 2000
 CONTEXT_CAP = 9000
 MIRROR_SEGMENTS = ("/.claude/plans/", "/.claude/mockups/", "/.claude/reviews/")
-PROJECT_SUBDIRS = ("plans", "research", "reviews", "mockups", "memory")
 
 
 def _lib():
@@ -73,24 +72,6 @@ def _capped(body: str, cap: int, path: Path) -> str:
     return f"{body[:cap].rstrip()}\n\n[Truncated at {cap} chars. Read {path} for the rest.]"
 
 
-def _write_project_note(lib, root: Path, folder: Path, slug: str) -> None:
-    """Write ``_project.md`` once; an existing note is never rewritten."""
-    note = folder / "_project.md"
-    if note.exists():
-        return
-    remote = lib._git(root, "remote", "get-url", "origin")
-    url = remote.stdout.strip() if remote is not None and remote.returncode == 0 else ""
-    text = (
-        f"---\nslug: {slug}\nrepo: {root}\nremote: {url}\ncreated: {_today()}\n---\n\n"
-        f"# {slug}\n\nArtifacts for `{root}`, kept by the project-vault hook.\n"
-    )
-    try:
-        with open(note, "x", encoding="utf-8") as fh:
-            fh.write(text)
-    except FileExistsError:
-        pass
-
-
 def _append_capped(parts: list[str], intro: str, body: str, cap: int, path: Path) -> None:
     """Append ``intro`` plus ``body`` capped at ``cap``, shrinking the cap to fit CONTEXT_CAP.
 
@@ -121,8 +102,9 @@ def _context(folder: Path, root: Path, vault: Path, memory_changed: bool) -> str
         body, source = _read(lessons), f"{lessons} (unmigrated; run vault-migrate)"
     if body:
         intro = (
-            f"Lessons for this project, from {source}. These are corrections the user has "
-            f"already made: treat them as binding and do not repeat the mistakes they describe.\n\n"
+            f"Lessons for this project, from {source}. These are corrections the user made in "
+            f"earlier sessions: follow them and do not repeat the mistakes they describe, unless "
+            f"the user says otherwise in this session.\n\n"
         )
         _append_capped(parts, intro, body, LESSONS_CAP, lessons)
 
@@ -147,11 +129,11 @@ def start(payload: dict) -> str:
         return ""
     root, vault, slug = resolved
 
-    folder = vault / "projects" / slug
-    for sub in PROJECT_SUBDIRS:
-        (folder / sub).mkdir(parents=True, exist_ok=True)
+    try:
+        folder = lib.ensure_project(root, vault, slug)
+    except lib.UnsafePath as exc:
+        return _session_start_output(f"project-vault: vault wiring skipped, {exc}".replace("\n", " "))
     (vault / "projects" / "_global" / "memory").mkdir(parents=True, exist_ok=True)
-    _write_project_note(lib, root, folder, slug)
 
     memory_dir = f"{vault}/projects/{slug}/memory"
     changed = lib.merge_setting(root / ".claude" / "settings.local.json", "autoMemoryDirectory", memory_dir)
@@ -204,10 +186,15 @@ def mirror(payload: dict) -> str:
         return ""
     if resolved is None:
         return ""
-    _root, vault, slug = resolved
+    root, vault, slug = resolved
+    # Claim the folder before writing into it, so a later start never finds it unmarked.
+    try:
+        lib.ensure_project(root, vault, slug)
+    except lib.UnsafePath:
+        return ""
     name = segment.split("/")[2]
     remainder = text[index + len(segment):]
-    lib.copy_newer(path, vault / "projects" / slug / name / remainder)
+    lib.copy_newer(path, vault / "projects" / slug / name / remainder, vault)
     return ""
 
 
@@ -220,6 +207,10 @@ def end(payload: dict) -> str:
     if resolved is None:
         return ""
     root, vault, slug = resolved
+    try:
+        lib.ensure_project(root, vault, slug)
+    except lib.UnsafePath:
+        return ""
     lib.sweep(root, vault, slug)
     lib.vault_commit(vault, slug, f"{slug} session artifacts {_today()}")
     return ""

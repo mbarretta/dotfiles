@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import git, init_repo
+from conftest import claim, git, init_repo
 
 SCRIPT = Path(__file__).resolve().parent.parent / "project-vault.py"
 TRUNCATION = "[Truncated at 8000 chars. Read {path} for the rest.]"
@@ -168,9 +168,9 @@ def test_start_creates_layout_and_project_note(repo, vault):
     note = (base / "_project.md").read_text(encoding="utf-8")
     assert note.startswith("---\n")
     front = note.split("---\n")[1]
-    assert f"slug: name\n" in front
-    assert f"repo: {repo}\n" in front
-    assert "remote: https://example.invalid/owner/name\n" in front
+    assert 'slug: "name"\n' in front
+    assert f'repo: "{repo}"\n' in front
+    assert 'remote: "https://example.invalid/owner/name"\n' in front
     assert f"created: {TODAY}\n" in front
     assert str(base) in ctx
 
@@ -188,7 +188,7 @@ def test_project_note_is_written_once(repo, vault):
 def test_project_note_without_remote_has_empty_remote(repo, vault):
     run_hook("start", {"cwd": str(repo)})
     front = (project(vault) / "_project.md").read_text(encoding="utf-8").split("---\n")[1]
-    assert "remote: \n" in front
+    assert 'remote: ""\n' in front
 
 
 def test_start_merges_auto_memory_directory(repo, vault):
@@ -268,7 +268,7 @@ def test_context_notes_auto_memory_change_only_when_written(repo, vault):
 
 
 def test_context_uses_vault_lessons_first(repo, vault):
-    project(vault).mkdir(parents=True)
+    claim(vault, "name", repo)
     (project(vault) / "lessons.md").write_text("- vault lesson\n", encoding="utf-8")
     (repo / ".claude").mkdir()
     (repo / ".claude" / "lessons.md").write_text("- repo lesson\n", encoding="utf-8")
@@ -296,7 +296,7 @@ def test_context_includes_global_memory_capped(repo, vault):
 
 
 def test_context_caps_lessons_and_total(repo, vault):
-    project(vault).mkdir(parents=True)
+    claim(vault, "name", repo)
     lessons = project(vault) / "lessons.md"
     lessons.write_text("L" * 20000, encoding="utf-8")
     mem = vault / "projects" / "_global" / "memory"
@@ -437,7 +437,7 @@ def test_end_sweeps_and_commits_once(repo, vault):
     subjects = commit_subjects(vault)
     assert subjects[0] == f"name session artifacts {TODAY}"
     changed = git(vault, "show", "--name-only", "--format=", "HEAD").split()
-    assert changed == ["projects/name/plans/p.json"]
+    assert sorted(changed) == ["projects/name/_project.md", "projects/name/plans/p.json"]
     second = run_hook("end", {"cwd": str(repo), "session_id": "s1"})
     assert (second.returncode, second.stdout) == (0, "")
     assert commit_subjects(vault) == subjects
@@ -451,3 +451,43 @@ def test_end_in_unwired_cwd_does_nothing(tmp_path, vault):
     assert (result.returncode, result.stdout) == (0, "")
     assert commit_subjects(vault) == before
     assert not (vault / "projects").exists()
+
+
+# --- review fixes -----------------------------------------------------------
+
+
+def test_lessons_intro_does_not_claim_precedence_over_the_user(repo, vault):
+    claim(vault, "name", repo)
+    (project(vault) / "lessons.md").write_text("- a lesson\n", encoding="utf-8")
+    ctx = context_of(run_hook("start", {"cwd": str(repo)}))
+    assert "binding" not in ctx
+    assert "unless the user says otherwise in this session" in ctx
+
+
+def test_mirror_claims_the_folder_before_writing_into_it(repo, vault):
+    plan = _write(repo / ".claude" / "plans" / "p.md", "plan\n")
+    result = run_hook("mirror", {"cwd": str(repo), "tool_input": {"file_path": str(plan)}})
+    assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
+    assert (project(vault) / "plans" / "p.md").is_file()
+    assert (project(vault) / "_project.md").is_file()
+    # A later start keeps the same slug instead of treating the folder as someone else's.
+    assert str(project(vault)) in context_of(run_hook("start", {"cwd": str(repo)}))
+
+
+def test_start_routes_around_a_symlinked_slug_folder(repo, vault, tmp_path):
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    (vault / "projects").mkdir()
+    (vault / "projects" / "name").symlink_to(target)
+    ctx = context_of(run_hook("start", {"cwd": str(repo)}))
+    assert str(project(vault, "owner-name")) in ctx
+    assert list(target.iterdir()) == []
+
+
+def test_start_with_symlinked_projects_dir_warns_and_writes_nothing(repo, vault, tmp_path):
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    (vault / "projects").symlink_to(target)
+    ctx = context_of(run_hook("start", {"cwd": str(repo)}))
+    assert ctx.startswith("project-vault: vault wiring skipped")
+    assert list(target.iterdir()) == []
