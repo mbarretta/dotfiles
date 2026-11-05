@@ -4,3 +4,7 @@
 # machine-local companions never belong in the repo
 *.local.*
 .zshrc.local
+
+# python test byproducts
+__pycache__/
+.pytest_cache/
